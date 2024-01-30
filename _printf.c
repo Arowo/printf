@@ -2,68 +2,57 @@
 #include "main.h"
 #include <stdarg.h>
 #include <unistd.h>
-
-size_t _strlen(const char *s);
-
 /**
- * _printf - Produces output according to a format.
- * @format: The format string.
+ * _printf - Custom printf function
+ * @format: Format string
  *
- * Return: The number of characters printed (excluding the null byte).
+ * Return: Number of characters printed (excluding null byte)
  */
 int _printf(const char *format, ...)
 {
-    int count = 0;
     va_list args;
+    int count = 0;
 
     va_start(args, format);
 
-    while (*format != '\0')
+    while (*format)
     {
-        if (*format == '%')
+        if (*format == '%' && *(format + 1) == 'b')
         {
-            format++; /* Move past '%' */
-            switch (*format)
-            {
-            case 'c':
-                {
-                    char temp = (char)va_arg(args, int);
-                    count += write(1, &temp, 1);
-                }
-                break;
-            case 's':
-                {
-                    char *str = va_arg(args, char *);
-                    count += write(1, str, _strlen(str));
-                }
-                break;
-            case 'd':
-            case 'i':
-                {
-                    int num = va_arg(args, int);
-                    /* Assuming a buffer size of 12 is sufficient for most integers*/
-                    char buffer[12];
-                    int len = sprintf(buffer, "%d", num);
-                    count += write(1, buffer, len);
-                }
-                break;
-            case '%':
-                count += write(1, "%", 1);
-                break;
-            default:
-                count += write(1, "%", 1); /* Treat unsupported format specifier as '%' */
-                break;
-            }
+            count += convert_binary(va_arg(args, unsigned int));
+            format += 2; /* Skip %b */
         }
         else
         {
             count += write(1, format, 1);
+            format++;
         }
-
-        format++;
     }
 
     va_end(args);
+    return count;
+}
+
+/**
+ * convert_binary - Convert unsigned int to binary and print
+ * @num: Unsigned int to convert
+ *
+ * Return: Number of characters printed
+ */
+int convert_binary(unsigned int num)
+{
+    int count = 0;
+    unsigned int mask = 1u << (sizeof(unsigned int) * 8 - 1);
+
+    while (mask)
+    {
+        if (num & mask)
+            count += write(1, "1", 1);
+        else
+            count += write(1, "0", 1);
+
+        mask >>= 1;
+    }
 
     return count;
 }
