@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "main.h"
 #include <stdarg.h>
 #include <unistd.h>
@@ -21,7 +22,7 @@ int _printf(const char *format, ...)
     {
         if (*format == '%')
         {
-            format++; /* Move past '%'*/
+            format++; /* Move past '%' */
             switch (*format)
             {
             case 'c':
@@ -36,11 +37,21 @@ int _printf(const char *format, ...)
                     count += write(1, str, _strlen(str));
                 }
                 break;
+            case 'd':
+            case 'i':
+                {
+                    int num = va_arg(args, int);
+                    /* Assuming a buffer size of 12 is sufficient for most integers*/
+                    char buffer[12];
+                    int len = sprintf(buffer, "%d", num);
+                    count += write(1, buffer, len);
+                }
+                break;
             case '%':
                 count += write(1, "%", 1);
                 break;
             default:
-                count += write(1, "%", 1); /* Treat unsupported format specifier as '%'*/
+                count += write(1, "%", 1); /* Treat unsupported format specifier as '%' */
                 break;
             }
         }
@@ -56,4 +67,3 @@ int _printf(const char *format, ...)
 
     return count;
 }
-
